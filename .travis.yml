@@ -1,0 +1,22 @@
+language: generic
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t rippili/docker-complex -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true rippili/docker-complex npm test
+
+after_success:
+  - docker build -t rippili/multi-client ./client
+  - docker build -t rippili/multi-nginx ./nginx
+  - docker build -t rippili/multi-server ./server
+  - docker build -t rippili/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push rippili/multi-client
+  - docker push rippili/multi-nginx
+  - docker push rippili/multi-server
+  - docker push rippili/multi-worker
